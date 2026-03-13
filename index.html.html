@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐릭터 아카이브 — 편집</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #ffffff; --bg-secondary: #f7f6f3;
+      --text-primary: #1a1a1a; --text-secondary: #555550; --text-tertiary: #999992;
+      --border-light: rgba(0,0,0,0.08); --border-mid: rgba(0,0,0,0.15); --border-strong: rgba(0,0,0,0.25);
+      --radius-md: 8px; --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1c1c1c; --bg-secondary: #252525;
+        --text-primary: #f0f0ee; --text-secondary: #aaaaaa; --text-tertiary: #666660;
+        --border-light: rgba(255,255,255,0.08); --border-mid: rgba(255,255,255,0.15); --border-strong: rgba(255,255,255,0.25);
+      }
+    }
+    body { background: var(--bg-secondary); color: var(--text-primary); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; padding: 2rem 1.5rem 4rem; }
+    .site-wrap { max-width: 900px; margin: 0 auto; }
+    .site-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; padding-bottom: 1.25rem; border-bottom: 0.5px solid var(--border-light); gap: 12px; flex-wrap: wrap; }
+    .site-title { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 400; letter-spacing: 0.06em; }
+    .site-title span { font-size: 13px; font-weight: 300; color: var(--text-tertiary); margin-left: 10px; }
+    .editor-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: #fff3cd; color: #856404; border: 0.5px solid #ffc107; }
+
+    .btn { font-family: 'Noto Sans KR', sans-serif; font-size: 13px; padding: 7px 16px; border-radius: var(--radius-md); border: 0.5px solid var(--border-mid); background: var(--bg-primary); color: var(--text-primary); cursor: pointer; transition: background 0.15s, opacity 0.15s; }
+    .btn:hover { background: var(--bg-secondary); }
+    .btn:active { transform: scale(0.98); }
+    .btn-accent { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+    .btn-accent:hover { opacity: 0.82; background: var(--text-primary); }
+    .btn-export { background: #1a7f4b; color: #fff; border-color: #1a7f4b; }
+    .btn-export:hover { background: #15693e; opacity: 1; }
+    .btn-danger { color: #A32D2D; border-color: #F7C1C1; }
+    .btn-danger:hover { background: #FCEBEB; }
+    .btn-sm { font-size: 12px; padding: 5px 12px; }
+
+    /* 캐릭터 카드 */
+    .character-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); margin-bottom: 1.5rem; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+    .character-card:hover { border-color: var(--border-mid); box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+    .card-main { display: grid; grid-template-columns: 210px 1fr; min-height: 320px; }
+    .card-image-area { background: var(--bg-secondary); border-right: 0.5px solid var(--border-light); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 1.25rem; }
+    .char-img { width: 100%; height: 260px; object-fit: cover; border-radius: var(--radius-md); display: block; }
+    .img-placeholder { width: 100%; height: 260px; border-radius: var(--radius-md); border: 1px dashed var(--border-mid); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background 0.15s; }
+    .img-placeholder:hover { background: var(--bg-primary); }
+    .img-placeholder svg { opacity: 0.25; }
+    .img-placeholder p { font-size: 12px; color: var(--text-tertiary); text-align: center; line-height: 1.6; }
+    .img-upload-btn { font-size: 12px; padding: 5px 12px; width: 100%; }
+    .card-info-area { padding: 1.5rem; display: flex; flex-direction: column; gap: 12px; }
+    .char-name-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .char-name { font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 400; border: none; background: transparent; width: 100%; outline: none; padding: 2px 4px; border-radius: 4px; transition: background 0.15s; color: var(--text-primary); }
+    .char-name:hover, .char-name:focus { background: var(--bg-secondary); }
+    .char-tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; border: 0.5px solid var(--border-mid); color: var(--text-secondary); background: transparent; outline: none; font-family: 'Noto Sans KR', sans-serif; min-width: 50px; text-align: center; }
+    .char-divider { height: 0.5px; background: var(--border-light); }
+    .char-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+    .meta-item { display: flex; align-items: center; gap: 6px; }
+    .meta-label { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; min-width: 28px; }
+    .meta-input { font-size: 13px; color: var(--text-secondary); border: none; background: transparent; outline: none; font-family: 'Noto Sans KR', sans-serif; width: 100%; padding: 2px 4px; border-radius: 4px; transition: background 0.15s; }
+    .meta-input:hover, .meta-input:focus { background: var(--bg-secondary); }
+    .char-desc { font-size: 14px; line-height: 1.8; color: var(--text-secondary); border: none; background: transparent; width: 100%; resize: none; outline: none; font-family: 'Noto Sans KR', sans-serif; flex: 1; min-height: 80px; padding: 4px; border-radius: 4px; transition: background 0.15s; }
+    .char-desc:hover, .char-desc:focus { background: var(--bg-secondary); }
+
+    /* 오디오 */
+    .card-audio-area { border-top: 0.5px solid var(--border-light); padding: 1rem 1.5rem; background: var(--bg-secondary); display: flex; flex-direction: column; gap: 8px; }
+    .audio-section-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; }
+    .audio-slots { display: flex; flex-direction: column; gap: 8px; }
+    .audio-slot { display: flex; align-items: center; gap: 8px; }
+    .audio-slot-remove { font-size: 11px; color: #A32D2D; cursor: pointer; border: none; background: none; padding: 2px 6px; opacity: 0.5; flex-shrink: 0; }
+    .audio-slot-remove:hover { opacity: 1; }
+    .audio-filename-wrap { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--bg-primary); border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); padding: 0 10px; height: 34px; }
+    .audio-filename-wrap svg { opacity: 0.3; flex-shrink: 0; }
+    .audio-filename-input { flex: 1; font-size: 12px; color: var(--text-secondary); border: none; background: transparent; outline: none; font-family: 'Noto Sans KR', sans-serif; }
+    .audio-filename-input::placeholder { color: var(--text-tertiary); }
+    .audio-hint { font-size: 11px; color: var(--text-tertiary); }
+
+    /* 캐릭터별 갤러리 */
+    .card-gallery-area { border-top: 0.5px solid var(--border-light); padding: 1rem 1.5rem; background: var(--bg-primary); display: flex; flex-direction: column; gap: 10px; }
+    .gallery-area-header { display: flex; align-items: center; justify-content: space-between; }
+    .gallery-area-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .gallery-item { position: relative; aspect-ratio: 1/1; border-radius: var(--radius-md); overflow: hidden; border: 0.5px solid var(--border-light); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; cursor: pointer; }
+    .gallery-item:hover img { opacity: 0.65; }
+    .gallery-item-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    .gallery-item:hover .gallery-item-overlay { opacity: 1; pointer-events: auto; }
+    .gallery-item-del { background: rgba(163,45,45,0.92); color: #fff; border: none; border-radius: var(--radius-md); padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+    .gallery-add-cell { aspect-ratio: 1/1; border-radius: var(--radius-md); border: 1px dashed var(--border-mid); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: background 0.15s; }
+    .gallery-add-cell:hover { background: var(--bg-secondary); }
+    .gallery-add-cell svg { opacity: 0.3; }
+    .gallery-add-cell p { font-size: 10px; color: var(--text-tertiary); }
+
+    /* 카드 액션 */
+    .card-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 10px 1.5rem; border-top: 0.5px solid var(--border-light); }
+    .save-indicator { font-size: 12px; color: var(--text-tertiary); margin-right: auto; font-style: italic; }
+    .add-char-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 1rem; border: 1px dashed var(--border-mid); border-radius: var(--radius-lg); background: transparent; cursor: pointer; font-size: 14px; font-family: 'Noto Sans KR', sans-serif; color: var(--text-tertiary); transition: all 0.15s; }
+    .add-char-btn:hover { background: var(--bg-primary); border-color: var(--border-strong); color: var(--text-secondary); }
+
+    /* 라이트박스 */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: var(--radius-md); object-fit: contain; }
+    .lightbox-close { position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; opacity: 0.7; }
+    .lightbox-close:hover { opacity: 1; }
+
+    /* 모달 */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg-primary); border-radius: var(--radius-lg); border: 0.5px solid var(--border-light); padding: 1.5rem; width: 340px; max-width: 90vw; }
+    .modal h3 { font-family: 'Noto Serif KR', serif; font-size: 17px; font-weight: 400; margin-bottom: 1rem; }
+    .modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.6; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .hidden-input { display: none; }
+
+    @media (max-width: 620px) {
+      .card-main { grid-template-columns: 1fr; }
+      .card-image-area { border-right: none; border-bottom: 0.5px solid var(--border-light); }
+      .char-meta { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="site-wrap">
+  <div class="site-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="site-title">캐릭터 아카이브 <span>편집 모드</span></div>
+      <span class="editor-badge">EDITOR</span>
+    </div>
+    <button class="btn btn-export" onclick="exportPublic()">공개용으로 내보내기 ↓</button>
+  </div>
+
+  <div id="char-list"></div>
+  <button class="add-char-btn" onclick="addCharacter()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    캐릭터 추가하기
+  </button>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h3>캐릭터 삭제</h3>
+    <p>이 캐릭터를 삭제하면 되돌릴 수 없어요. 정말 삭제할까요?</p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeDeleteModal()">취소</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">삭제하기</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" class="hidden-input" id="global-img-input" accept="image/*">
+<input type="file" class="hidden-input" id="gallery-file-input" accept="image/*" multiple>
+
+<script>
+const STORAGE_KEY = 'character_archive_v1';
+let characters = [];
+let pendingImageId = null, pendingAudioId = null, pendingAudioSlot = null;
+let pendingGalleryId = null, deleteTargetId = null;
+
+function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(characters)); } catch(e) {} }
+function load() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) characters = JSON.parse(r); } catch(e) {} }
+
+function addCharacter() {
+  const id = generateId();
+  characters.push({ id, name: '새 캐릭터', tag: '태그', job: '', gender: '', age: '', height: '', desc: '캐릭터 소개를 입력해주세요.', imageSrc: null, audio: [{src:null},{src:null},{src:null}], gallery: [] });
+  save(); renderAll();
+  setTimeout(() => { const el = document.getElementById('name-' + id); if (el) { el.focus(); el.select(); } }, 50);
+}
+
+function renderAll() {
+  const list = document.getElementById('char-list');
+  list.innerHTML = '';
+  characters.forEach(c => list.appendChild(buildCard(c)));
+}
+
+function buildCard(c) {
+  const wrap = document.createElement('div');
+  wrap.className = 'character-card'; wrap.id = 'card-' + c.id;
+
+  const imageHtml = c.imageSrc
+    ? `<img class="char-img" src="${c.imageSrc}" alt="${esc(c.name)}">`
+    : `<div class="img-placeholder" onclick="triggerImageUpload('${c.id}')">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 28l9-7 6 5 5-4 8 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <p>클릭해서<br>이미지 업로드</p>
+      </div>`;
+
+  const audioSlotsHtml = c.audio.map((a, i) => {
+    return `<div class="audio-slot">
+      <div class="audio-filename-wrap">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4l6-3v14L3 12V4zM9 5.5c1.5.8 2.5 2 2.5 3s-1 2.2-2.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <input class="audio-filename-input" type="text" value="${esc(a.filename||'')}"
+          oninput="updateAudio('${c.id}',${i},this.value)"
+          placeholder="audio/파일명.mp3">
+      </div>
+    </div>`;
+  }).join('') + `<p class="audio-hint">audio/ 폴더에 파일을 넣고 경로를 입력하세요 (예: audio/voice1.mp3)</p>`;
+
+  const galleryItems = (c.gallery || []).map(g =>
+    `<div class="gallery-item">
+      <img src="${g.src}" alt="" onclick="openLightbox('${g.src}')">
+      <div class="gallery-item-overlay">
+        <button class="gallery-item-del" onclick="deleteGalleryItem(event,'${c.id}','${g.id}')">삭제</button>
+      </div>
+    </div>`
+  ).join('');
+
+  const galleryAddCell = `
+    <div class="gallery-add-cell" onclick="triggerGalleryUpload('${c.id}')">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <p>추가</p>
+    </div>`;
+
+  wrap.innerHTML = `
+    <div class="card-main">
+      <div class="card-image-area">
+        ${imageHtml}
+        <button class="btn img-upload-btn" onclick="triggerImageUpload('${c.id}')">${c.imageSrc ? '이미지 변경' : '이미지 선택'}</button>
+      </div>
+      <div class="card-info-area">
+        <div class="char-name-row">
+          <input class="char-name" id="name-${c.id}" type="text" value="${esc(c.name)}" oninput="updateField('${c.id}','name',this.value)" placeholder="캐릭터 이름">
+          <input class="char-tag" type="text" value="${esc(c.tag)}" oninput="updateField('${c.id}','tag',this.value)" placeholder="태그">
+        </div>
+        <div class="char-divider"></div>
+        <div class="char-meta">
+          <div class="meta-item"><span class="meta-label">직업</span><input class="meta-input" type="text" value="${esc(c.job)}" oninput="updateField('${c.id}','job',this.value)" placeholder="직업"></div>
+          <div class="meta-item"><span class="meta-label">성별</span><input class="meta-input" type="text" value="${esc(c.gender)}" oninput="updateField('${c.id}','gender',this.value)" placeholder="성별"></div>
+          <div class="meta-item"><span class="meta-label">나이</span><input class="meta-input" type="text" value="${esc(c.age)}" oninput="updateField('${c.id}','age',this.value)" placeholder="나이"></div>
+          <div class="meta-item"><span class="meta-label">키</span><input class="meta-input" type="text" value="${esc(c.height)}" oninput="updateField('${c.id}','height',this.value)" placeholder="키"></div>
+        </div>
+        <div class="char-divider"></div>
+        <textarea class="char-desc" oninput="updateField('${c.id}','desc',this.value);autoResize(this)" placeholder="캐릭터 소개를 입력해주세요...">${esc(c.desc)}</textarea>
+      </div>
+    </div>
+    <div class="card-audio-area">
+      <div class="audio-section-label">Voice Samples</div>
+      <div class="audio-slots">${audioSlotsHtml}</div>
+    </div>
+    <div class="card-gallery-area">
+      <div class="gallery-area-header">
+        <span class="gallery-area-label">Gallery</span>
+        <button class="btn btn-sm" onclick="triggerGalleryUpload('${c.id}')">+ 이미지 추가</button>
+      </div>
+      <div class="gallery-grid" id="gallery-${c.id}">
+        ${galleryItems}
+        ${galleryAddCell}
+      </div>
+    </div>
+    <div class="card-actions">
+      <span class="save-indicator" id="saved-${c.id}"></span>
+      <button class="btn btn-danger" onclick="openDeleteModal('${c.id}')">삭제</button>
+    </div>`;
+  return wrap;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function updateField(id, field, value) { const c = characters.find(x => x.id === id); if (c) { c[field] = value; save(); showSaved(id); } }
+function showSaved(id) { const el = document.getElementById('saved-' + id); if (el) { el.textContent = '저장됨'; clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; }, 1500); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
+function triggerImageUpload(id) { pendingImageId = id; const i = document.getElementById('global-img-input'); i.value = ''; i.click(); }
+function updateAudio(id, slot, filename) {
+  const c = characters.find(x => x.id === id);
+  if (c) { c.audio[slot].filename = filename; save(); showSaved(id); }
+}
+function triggerGalleryUpload(id) { pendingGalleryId = id; const i = document.getElementById('gallery-file-input'); i.value = ''; i.click(); }
+
+// 이미지 압축 함수: maxW/maxH 이내로 리사이즈 + quality 압축
+function compressImage(file, maxW, maxH, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxW || h > maxH) {
+        const ratio = Math.min(maxW / w, maxH / h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('global-img-input').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file || !pendingImageId) return;
+  // 캐릭터 메인 이미지: 최대 600x800, 품질 0.82
+  compressImage(file, 600, 800, 0.82, src => {
+    const c = characters.find(x => x.id === pendingImageId);
+    if (c) { c.imageSrc = src; save(); renderAll(); }
+    pendingImageId = null;
+  });
+});
+function removeAudio(id, slot) { const c = characters.find(x => x.id === id); if (c) { c.audio[slot].filename = ''; save(); renderAll(); } }
+document.getElementById('gallery-file-input').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files); if (!files.length || !pendingGalleryId) return;
+  const c = characters.find(x => x.id === pendingGalleryId);
+  if (!c) return;
+  if (!c.gallery) c.gallery = [];
+  let loaded = 0;
+  files.forEach(file => {
+    // 갤러리 썸네일: 최대 800x800, 품질 0.78
+    compressImage(file, 800, 800, 0.78, src => {
+      c.gallery.push({ id: generateId(), src });
+      loaded++;
+      if (loaded === files.length) { save(); renderAll(); }
+    });
+  });
+  pendingGalleryId = null;
+});
+
+function removeAudio(id, slot) { const c = characters.find(x => x.id === id); if (c) { c.audio[slot].src = null; save(); renderAll(); } }
+function deleteGalleryItem(e, charId, imgId) {
+  e.stopPropagation();
+  const c = characters.find(x => x.id === charId);
+  if (c) { c.gallery = c.gallery.filter(g => g.id !== imgId); save(); renderAll(); }
+}
+function openLightbox(src) { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+function openDeleteModal(id) { deleteTargetId = id; document.getElementById('delete-modal').classList.add('open'); }
+function closeDeleteModal() { deleteTargetId = null; document.getElementById('delete-modal').classList.remove('open'); }
+function confirmDelete() { characters = characters.filter(x => x.id !== deleteTargetId); save(); closeDeleteModal(); renderAll(); }
+
+/* ── 내보내기 ── */
+function exportPublic() {
+  const html = buildPublicHTML(JSON.stringify(characters));
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'index.html'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function buildPublicHTML(charJson) {
+return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐릭터 아카이브</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg-primary:#ffffff;--bg-secondary:#f7f6f3;--text-primary:#1a1a1a;--text-secondary:#555550;--text-tertiary:#999992;--border-light:rgba(0,0,0,0.08);--border-mid:rgba(0,0,0,0.15);--radius-md:8px;--radius-lg:12px;}
+    @media(prefers-color-scheme:dark){:root{--bg-primary:#1c1c1c;--bg-secondary:#252525;--text-primary:#f0f0ee;--text-secondary:#aaaaaa;--text-tertiary:#666660;--border-light:rgba(255,255,255,0.08);--border-mid:rgba(255,255,255,0.15);}}
+    body{background:var(--bg-secondary);color:var(--text-primary);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:2rem 1.5rem 4rem;}
+    .site-wrap{max-width:900px;margin:0 auto;}
+    .site-header{display:flex;align-items:center;margin-bottom:2.5rem;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border-light);}
+    .site-title{font-family:'Noto Serif KR',serif;font-size:22px;font-weight:400;letter-spacing:0.06em;}
+    .site-title span{font-size:13px;font-weight:300;color:var(--text-tertiary);margin-left:10px;}
+    .character-card{background:var(--bg-primary);border:0.5px solid var(--border-light);border-radius:var(--radius-lg);margin-bottom:1.5rem;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
+    .character-card:hover{border-color:var(--border-mid);box-shadow:0 2px 16px rgba(0,0,0,0.06);}
+    .card-main{display:grid;grid-template-columns:210px 1fr;min-height:320px;}
+    .card-image-area{background:var(--bg-secondary);border-right:0.5px solid var(--border-light);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:1.25rem;}
+    .char-img{width:100%;height:260px;object-fit:cover;border-radius:var(--radius-md);display:block;}
+    .img-empty{width:100%;height:260px;border-radius:var(--radius-md);background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;}
+    .img-empty svg{opacity:0.15;}
+    .card-info-area{padding:1.5rem;display:flex;flex-direction:column;gap:12px;}
+    .char-name{font-family:'Noto Serif KR',serif;font-size:20px;font-weight:400;color:var(--text-primary);}
+    .char-tag{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--border-mid);color:var(--text-secondary);display:inline-block;}
+    .char-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+    .char-divider{height:0.5px;background:var(--border-light);}
+    .char-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;}
+    .meta-item{display:flex;align-items:center;gap:6px;}
+    .meta-label{font-size:11px;color:var(--text-tertiary);white-space:nowrap;min-width:28px;}
+    .meta-value{font-size:13px;color:var(--text-secondary);}
+    .char-desc{font-size:14px;line-height:1.8;color:var(--text-secondary);}
+    .card-audio-area{border-top:0.5px solid var(--border-light);padding:1rem 1.5rem;background:var(--bg-secondary);display:flex;flex-direction:column;gap:8px;}
+    .audio-section-label{font-size:11px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.1em;}
+    .audio-slots{display:flex;flex-direction:column;gap:8px;}
+    .audio-player-wrap audio{width:100%;height:32px;border-radius:var(--radius-md);display:block;}
+    .card-gallery-area{border-top:0.5px solid var(--border-light);padding:1rem 1.5rem;background:var(--bg-primary);display:flex;flex-direction:column;gap:10px;}
+    .gallery-area-label{font-size:11px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.1em;}
+    .gallery-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+    .gallery-item{aspect-ratio:1/1;border-radius:var(--radius-md);overflow:hidden;border:0.5px solid var(--border-light);cursor:pointer;}
+    .gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.2s;}
+    .gallery-item:hover img{opacity:0.85;}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:center;justify-content:center;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:90vw;max-height:90vh;border-radius:var(--radius-md);object-fit:contain;}
+    .lightbox-close{position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;opacity:0.7;}
+    .lightbox-close:hover{opacity:1;}
+    @media(max-width:620px){.card-main{grid-template-columns:1fr;}.card-image-area{border-right:none;border-bottom:0.5px solid var(--border-light);}.char-meta{grid-template-columns:1fr;}.gallery-grid{grid-template-columns:repeat(4,1fr);}}
+  </style>
+</head>
+<body>
+<div class="site-wrap">
+  <div class="site-header">
+    <div class="site-title">캐릭터 아카이브 <span>Character Archive</span></div>
+  </div>
+  <div id="char-list"></div>
+</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="event.stopPropagation();closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+<script>
+const characters=${charJson};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function render(){
+  const list=document.getElementById('char-list');list.innerHTML='';
+  characters.forEach(c=>{
+    const imageHtml=c.imageSrc
+      ? \`<img class="char-img" src="\${c.imageSrc}" alt="\${esc(c.name)}">\`
+      : \`<div class="img-empty"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="8" width="32" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 28l9-7 6 5 5-4 8 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>\`;
+    const metaHtml=[
+      c.job?   \`<div class="meta-item"><span class="meta-label">직업</span><span class="meta-value">\${esc(c.job)}</span></div>\`:'',
+      c.gender?\`<div class="meta-item"><span class="meta-label">성별</span><span class="meta-value">\${esc(c.gender)}</span></div>\`:'',
+      c.age?   \`<div class="meta-item"><span class="meta-label">나이</span><span class="meta-value">\${esc(c.age)}</span></div>\`:'',
+      c.height?\`<div class="meta-item"><span class="meta-label">키</span><span class="meta-value">\${esc(c.height)}</span></div>\`:'',
+    ].filter(Boolean).join('');
+    const audioHtml=c.audio.filter(a=>a.filename&&a.filename.trim()).map(a=>\`<div class="audio-player-wrap"><audio controls src="\${esc(a.filename.trim())}"></audio></div>\`).join('');
+    const galleryHtml=(c.gallery||[]).map((g,i)=>\`<div class="gallery-item" onclick="openLightbox('\${g.src}')"><img src="\${g.src}" alt="스크린샷 \${i+1}"></div>\`).join('');
+    const card=document.createElement('div');card.className='character-card';
+    card.innerHTML=\`
+      <div class="card-main">
+        <div class="card-image-area">\${imageHtml}</div>
+        <div class="card-info-area">
+          <div class="char-name-row"><span class="char-name">\${esc(c.name)}</span><span class="char-tag">\${esc(c.tag)}</span></div>
+          \${metaHtml?\`<div class="char-divider"></div><div class="char-meta">\${metaHtml}</div>\`:''}
+          <div class="char-divider"></div>
+          <p class="char-desc">\${esc(c.desc).replace(/\\n/g,'<br>')}</p>
+        </div>
+      </div>
+      \${audioHtml?\`<div class="card-audio-area"><div class="audio-section-label">Voice Samples</div><div class="audio-slots">\${audioHtml}</div></div>\`:''}
+      \${galleryHtml?\`<div class="card-gallery-area"><div class="gallery-area-label">Gallery</div><div class="gallery-grid">\${galleryHtml}</div></div>\`:''}
+    \`;
+    list.appendChild(card);
+  });
+}
+function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+render();
+<\/script>
+</body>
+</html>`;
+}
+
+load();
+if (characters.length === 0) addCharacter();
+else renderAll();
+</script>
+</body>
+</html>
