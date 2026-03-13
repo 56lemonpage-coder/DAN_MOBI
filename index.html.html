@@ -75,7 +75,7 @@ function render(){
       c.age?   `<div class="meta-item"><span class="meta-label">나이</span><span class="meta-value">${esc(c.age)}</span></div>`:'',
       c.height?`<div class="meta-item"><span class="meta-label">키</span><span class="meta-value">${esc(c.height)}</span></div>`:'',
     ].filter(Boolean).join('');
-    const audioHtml=c.audio.filter(a=>a.filename&&a.filename.trim()).map(a=>`<div class="audio-player-wrap"><audio controls src="${esc(a.filename.trim())}"></audio></div>`).join('');
+    const audioHtml=c.audio.filter(a=>a.filename&&a.filename.trim()).map(a=>`<div class="audio-player-wrap"><audio controls controlslist="nodownload" src="${esc(a.filename.trim())}"></audio></div>`).join('');
     const galleryHtml=(c.gallery||[]).map((g,i)=>`<div class="gallery-item" onclick="openLightbox('${g.src}')"><img src="${g.src}" alt="스크린샷 ${i+1}"></div>`).join('');
     const card=document.createElement('div');card.className='character-card';
     card.innerHTML=`
